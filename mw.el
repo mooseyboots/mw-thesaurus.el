@@ -165,7 +165,9 @@ Usage: `(mw-thesaurus--get-xml-node html-root '(html head title))`"
       current-node)))
 
 (defun mw-thesaurus--italicize (prop)
-  "Check for element PROP containing <it> tag, retrieves content, resulting string is placed between '/' and '/'."
+  "Check for element PROP containing <it> tag.
+Retrieves content, resulting string is placed between '/' and
+'/'."
   (let ((its (mw-thesaurus--get-xml-node prop '(it))))
     (mapconcat
      (lambda (e)
@@ -194,7 +196,9 @@ Usage: `(mw-thesaurus--get-xml-node html-root '(html head title))`"
                 ((eq tag-type 'ant) "Antonyms")
                 (t "Unknown type"))))
     (when (and content (< 0 (length content)))
-      (string-join (list "\n*** " title ":\n    " (replace-regexp-in-string ";" "\n   " content t t)) ""))))
+      (string-join (list "\n*** "
+                         title ":\n " (replace-regexp-in-string ";" "\n " content t
+                                                                t)) ""))))
 
 (defun mw-thesaurus--third-lvl (article)
   "Third level of ARTICLE."
@@ -243,7 +247,7 @@ Take XML-DATA, Returns multi-line text in ‘org-mode’ format."
      entries "\n")))
 
 (defun mw-thesaurus--create-buffer (word data)
-  "Build mw-thesaurus buffer for WORD and the relevant DATA from Merriam-Webster API."
+  "Build mw-thesaurus buffer for WORD with DATA from Merriam-Webster API."
   (let ((dict-str (mw-thesaurus--parse data)))
     (if (< (length dict-str) 1)
         (message "Sadly, Merriam-Webster doesn't seem to have anything for '%s'" word)
@@ -287,7 +291,7 @@ Otherwise, user must provide additional information."
 
 ;;;###autoload
 (defun mw-thesaurus-lookup-dwim ()
-  "Look up a thesaurus definition on demand using Merriam-Webster online dictionary.
+  "Look up a thesaurus definition using Merriam-Webster online dictionary.
 If a region is selected use mw-thesaurus-lookup-word
 if a thing at point is not empty use mw-thesaurus-lookup-word-at-point
 otherwise as for word using mw-thesaurus-lookup-word"
@@ -304,7 +308,7 @@ otherwise as for word using mw-thesaurus-lookup-word"
 
 ;;;###autoload
 (defun mw-thesaurus-lookup-at-point (word-point)
-  "Look up a thesaurus definition for word at point using Merriam-Webster online dictionary."
+  "Look up word at point WORD-POINT using Merriam-Webster online thesaurus."
   (interactive (list (point)))
   (save-mark-and-excursion
     (unless (mw-thesaurus-is-at-the-beginning-of-word word-point)
