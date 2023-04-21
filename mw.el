@@ -102,6 +102,7 @@
         (json-object-type 'alist)
         (response (mw-collegiate--get query)))
     (with-current-buffer response
+      ;; (switch-to-buffer (current-buffer))
       (goto-char (point-min))
       (re-search-forward "^$" nil 'move)
       (let ((json-str (decode-coding-string
