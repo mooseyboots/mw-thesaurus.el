@@ -343,9 +343,8 @@ If there is no selection provided, additional input will be required."
   (interactive)
   (when-let* ((buffer (or (get-buffer mw-thesaurus-buffer-name)
                           (get-buffer "*mw-dictionary*"))))
-    ;; (quit-window)
-    (kill-this-buffer)))
-    ;; (kill-buffer buffer)))
+    (quit-window)
+    (kill-buffer buffer)))
 
 (provide 'mw)
 ;;; mw.el ends here
