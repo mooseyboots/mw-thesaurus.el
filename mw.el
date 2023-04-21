@@ -77,6 +77,7 @@
 
 
 ;;; MW COLLEGIATE DICTIONARY
+(defvar mw-collegiate-api-key nil)
 
 (defvar mw-base-url "http://www.dictionaryapi.com")
 
