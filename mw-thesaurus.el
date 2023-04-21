@@ -38,6 +38,7 @@
 (require 'request)
 (require 'thingatpt)
 (require 'xml)
+(require 'json)
 (require 'org)
 (require 'dash)
 
@@ -73,6 +74,87 @@
   "http://www.dictionaryapi.com/api/v1/references/thesaurus/xml/"
   "Merriam-Webster API base URL."
   :type 'string)
+
+(defvar mw-base-url "http://www.dictionaryapi.com")
+
+
+(defun mw-collegiate-url ()
+  "Return collegiate dictionary API url."
+  (concat mw-base-url "/api/v3/references/collegiate/json/"))
+
+(defun mw-collegiate--get (query)
+  "Make GET request for QUERY."
+  (let* ((base-url (mw-collegiate-url))
+         (params `(("key" ,mw-collegiate-api-key)))
+         (param-str (url-build-query-string params))
+         (url (concat base-url
+                      query
+                      "?"
+                      param-str)))
+    (url-retrieve-synchronously url)))
+
+(defun mw-collegiate--get-json (query)
+  "Return JSON for search QUERY."
+  (let ((json-array-type 'list)
+        (json-object-type 'alist)
+        (response (mw-collegiate--get query)))
+    (with-current-buffer response
+      (goto-char (point-min))
+      (re-search-forward "^$" nil 'move)
+      (let ((json-str (decode-coding-string
+                       (buffer-substring-no-properties (point) (point-max))
+                       'utf-8)))
+        (unless (or (string-empty-p json-str) (null json-str))
+          (json-read-from-string json-str))))))
+
+(defun mw-collegiate--map-results (json)
+  "Return a results alist for each entry in JSON.
+Returns a list of alists."
+  (mapcar (lambda (x)
+            `((:term . ,(alist-get 'id
+                                   (alist-get 'meta x)))
+              (:date . ,(alist-get 'date x))
+              (:pos . ,(alist-get 'fl x))
+              (:defs . ,(alist-get 'shortdef x))))
+          json))
+
+(defun mw-collegiate--insert-defs (defs)
+  "Format a string of definitions DEFS."
+  (mapconcat
+   (lambda (x)
+     (concat "** " x "\n"))
+   defs ""))
+
+(defun mw-collegiate--insert-results (results)
+  "Format a string of RESULTS."
+  (mapconcat
+   (lambda (x)
+     (let* ((level1 (concat "* " (alist-get :term x)
+                            " ~" (alist-get :pos x)
+                            " " (alist-get :date x)
+                            "~\n"))
+            (defs (alist-get :defs x))
+            (level2 (mw-collegiate--insert-defs defs)))
+       (string-join (list level1 level2) "")))
+   results ""))
+
+(defun mw-collegiate-query (query)
+  "Query the merriam webster collegiate dictionary and return results.
+QUERY is the term to search for."
+  (interactive "sQuery: ")
+  (let* ((json (mw-collegiate--get-json query))
+         (results (mw-collegiate--map-results json)))
+    (with-current-buffer (get-buffer-create "*mw-dictionary*")
+      (let ((inhibit-read-only t))
+        (switch-to-buffer-other-window (current-buffer))
+        (erase-buffer)
+        (goto-char (point-min))
+        (insert
+         (mw-collegiate--insert-results results))
+        (org-mode)
+        (mw-mode)
+        (goto-char (point-min))))))
+
 
 (defun mw-thesaurus--get-xml-node (root path)
   "From parsed xml ROOT retrieves a node for given PATH.
