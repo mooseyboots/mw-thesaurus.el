@@ -47,7 +47,7 @@
   :prefix "mw"
   :group 'applications)
 
-(defvar mw-thesaurus-mode-map (make-sparse-keymap)
+(defvar mw-mode-map (make-sparse-keymap)
   "Keymap for minor mode variable `mw-mode'.")
 
 (defvar mw-thesaurus-buffer-name "* Merriam-Webster Thesaurus *"
@@ -59,11 +59,11 @@
   :group 'mw
   :lighter " Merriam-Webster"
   :init-value nil
-  :keymap mw-thesaurus-mode-map
+  :keymap mw-mode-map
   (read-only-mode 1))
 
-(define-key mw-thesaurus-mode-map [remap org-open-at-point] #'mw-thesaurus-lookup-at-point)
-(define-key mw-thesaurus-mode-map (kbd "q") #'mw-thesaurus--quit)
+(define-key mw-mode-map [remap org-open-at-point] #'mw-thesaurus-lookup-at-point)
+(define-key mw-mode-map (kbd "q") #'mw-thesaurus--quit)
 
 (defcustom mw-thesaurus-api-key
   "67d977d5-790b-412e-a547-9dbcc2bcd525"
