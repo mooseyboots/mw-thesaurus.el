@@ -338,10 +338,10 @@ If there is no selection provided, additional input will be required."
                       word "?key="
                       (symbol-value 'mw-thesaurus-api-key))))
     (request url
-             :parser (lambda () (xml-parse-region (point-min) (point-max)))
-             :success (cl-function
-                       (lambda (&key data &allow-other-keys)
-                         (mw-thesaurus--create-buffer word data))))))
+      :parser (lambda () (xml-parse-region (point-min) (point-max)))
+      :success (cl-function
+                (lambda (&key data &allow-other-keys)
+                  (mw-thesaurus--create-buffer word data))))))
 
 (defun mw-thesaurus--quit ()
   "Kill Merriam-Webster Thesaurus buffer."
