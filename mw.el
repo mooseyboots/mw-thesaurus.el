@@ -1,11 +1,11 @@
-;;; mw-thesaurus.el --- Merriam-Webster Thesaurus -*- lexical-binding: t; -*-
+;;; mw.el --- Merriam-Webster Thesaurus -*- lexical-binding: t; -*-
 ;;
 ;; Author: Ag Ibragimov
 ;; URL: https://github.com/agzam/mw-thesaurus.el
 ;; Created: Nov-2017
 ;; Keywords: wp, matching
 ;; License: GPL v3
-;; Package-Requires: ((emacs "25") (request "0.3.0") (dash "2.16.0"))
+;; Package-Requires: ((emacs "26.1") (request "0.3.0") (dash "2.16.0"))
 ;; Version: 1.0.1
 
 ;;; Commentary:
@@ -42,21 +42,21 @@
 (require 'org)
 (require 'dash)
 
-(defgroup mw-thesaurus nil
-  "Merriam-Webster Thesaurus"
-  :prefix "mw-thesaurus-"
+(defgroup mw nil
+  "Merriam-Webster Thesaurus."
+  :prefix "mw"
   :group 'applications)
 
 (defvar mw-thesaurus-mode-map (make-sparse-keymap)
-  "Keymap for minor mode variable `mw-thesaurus-mode'.")
+  "Keymap for minor mode variable `mw-mode'.")
 
 (defvar mw-thesaurus-buffer-name "* Merriam-Webster Thesaurus *"
   "Default buffer name for Merriam-Webster Thesaurus.")
 
-(define-minor-mode mw-thesaurus-mode
-  "Merriam-Webster thesaurus minor mode
-\\{mw-thesaurus-mode-map}"
-  :group 'mw-thesaurus
+(define-minor-mode mw-mode
+  "Merriam-Webster thesaurus minor mode.
+\\{mw-thesaurus-mode-map}."
+  :group 'mw
   :lighter " Merriam-Webster"
   :init-value nil
   :keymap mw-thesaurus-mode-map
@@ -76,7 +76,6 @@
   :type 'string)
 
 (defvar mw-base-url "http://www.dictionaryapi.com")
-
 
 (defun mw-collegiate-url ()
   "Return collegiate dictionary API url."
@@ -250,7 +249,7 @@ Take XML-DATA, Returns multi-line text in ‘org-mode’ format."
         (message "Sadly, Merriam-Webster doesn't seem to have anything for '%s'" word)
       (let ((temp-buf (get-buffer-create mw-thesaurus-buffer-name)))
         ;; (print temp-buf)
-        (unless (bound-and-true-p mw-thesaurus-mode)
+        (unless (bound-and-true-p mw-mode)
           (switch-to-buffer-other-window temp-buf))
         (set-buffer temp-buf)
         (with-current-buffer temp-buf
@@ -259,7 +258,7 @@ Take XML-DATA, Returns multi-line text in ‘org-mode’ format."
             (setf org-hide-emphasis-markers t)
             (insert (decode-coding-string dict-str 'dos)))
           (org-mode)
-          (mw-thesaurus-mode)
+          (mw-mode)
           (goto-char (point-min)))))))
 
 (defun mw-thesaurus-get-original-word (beginning end)
@@ -338,10 +337,11 @@ If there is no selection provided, additional input will be required."
 (defun mw-thesaurus--quit ()
   "Kill Merriam-Webster Thesaurus buffer."
   (interactive)
-  (when-let* ((buffer (get-buffer mw-thesaurus-buffer-name)))
-    (quit-window)
-    (kill-buffer buffer)))
+  (when-let* ((buffer (or (get-buffer mw-thesaurus-buffer-name)
+                          (get-buffer "*mw-dictionary*"))))
+    ;; (quit-window)
+    (kill-this-buffer)))
+    ;; (kill-buffer buffer)))
 
-(provide 'mw-thesaurus)
-
-;;; mw-thesaurus.el ends here
+(provide 'mw)
+;;; mw.el ends here
