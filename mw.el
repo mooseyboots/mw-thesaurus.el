@@ -75,6 +75,9 @@
   "Merriam-Webster API base URL."
   :type 'string)
 
+
+;;; MW COLLEGIATE DICTIONARY
+
 (defvar mw-base-url "http://www.dictionaryapi.com")
 
 (defun mw-collegiate-url ()
@@ -130,14 +133,14 @@ Returns a list of alists."
    (lambda (x)
      (let* ((level1 (concat "* " (alist-get :term x)
                             " ~" (alist-get :pos x)
-                            " " (alist-get :date x)
-                            "~\n"))
+                            " [" (alist-get :date x)
+                            "]~\n"))
             (defs (alist-get :defs x))
             (level2 (mw-collegiate--insert-defs defs)))
        (string-join (list level1 level2) "")))
    results ""))
 
-(defun mw-collegiate-query (query)
+(defun mw-collegiate-dicionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
 QUERY is the term to search for."
   (interactive "sQuery: ")
@@ -155,6 +158,7 @@ QUERY is the term to search for."
         (goto-char (point-min))))))
 
 
+;;; MW THESAURUS
 (defun mw-thesaurus--get-xml-node (root path)
   "From parsed xml ROOT retrieves a node for given PATH.
 
