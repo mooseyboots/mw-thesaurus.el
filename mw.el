@@ -5,7 +5,7 @@
 ;; Created: Nov-2017
 ;; Keywords: wp, matching
 ;; License: GPL v3
-;; Package-Requires: ((emacs "26.1") (request "0.3.0") (dash "2.16.0"))
+;; Package-Requires: ((emacs "26.1") (request "0.3.0") (dash "2.16.0") (aio "1.0"))
 ;; Version: 1.0.1
 
 ;;; Commentary:
@@ -41,6 +41,7 @@
 (require 'json)
 (require 'org)
 (require 'dash)
+(require 'aio)
 
 (defgroup mw nil
   "Merriam-Webster Thesaurus."
@@ -85,7 +86,7 @@
   "Return collegiate dictionary API url."
   (concat mw-base-url "/api/v3/references/collegiate/json/"))
 
-(defun mw-collegiate--get (query)
+(aio-defun mw-collegiate--get (query)
   "Make GET request for QUERY."
   (let* ((base-url (mw-collegiate-url))
          (params `(("key" ,mw-collegiate-api-key)))
@@ -94,14 +95,14 @@
                       query
                       "?"
                       param-str)))
-    (url-retrieve-synchronously url)))
+    (aio-await (aio-url-retrieve url))))
 
-(defun mw-collegiate--get-json (query)
+(aio-defun mw-collegiate--get-json (query)
   "Return JSON for search QUERY."
   (let ((json-array-type 'list)
         (json-object-type 'alist)
-        (response (mw-collegiate--get query)))
-    (with-current-buffer response
+        (response (aio-await (mw-collegiate--get query))))
+    (with-current-buffer (cdr response)
       ;; (switch-to-buffer (current-buffer))
       (goto-char (point-min))
       (re-search-forward "^$" nil 'move)
@@ -156,11 +157,11 @@ Returns a list of alists."
    results
    ""))
 
-(defun mw-collegiate-dicionary-query (query)
+(aio-defun mw-collegiate-dicionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
 QUERY is the term to search for."
   (interactive "sQuery: ")
-  (let* ((json (mw-collegiate--get-json query))
+  (let* ((json (aio-await (mw-collegiate--get-json query)))
          (results (mw-collegiate--map-results json)))
     (with-current-buffer (get-buffer-create "*mw-dictionary*")
       (let ((inhibit-read-only t))
