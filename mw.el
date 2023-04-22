@@ -78,18 +78,18 @@
 
 
 ;;; MW COLLEGIATE DICTIONARY
-(defvar mw-collegiate-api-key nil)
+(defvar mw-dictionary-api-key nil)
 
 (defvar mw-base-url "http://www.dictionaryapi.com")
 
-(defun mw-collegiate-url ()
+(defun mw-dictionary-url ()
   "Return collegiate dictionary API url."
   (concat mw-base-url "/api/v3/references/collegiate/json/"))
 
-(aio-defun mw-collegiate--get (query)
+(aio-defun mw-dictionary--get (query)
   "Make GET request for QUERY."
-  (let* ((base-url (mw-collegiate-url))
-         (params `(("key" ,mw-collegiate-api-key)))
+  (let* ((base-url (mw-dictionary-url))
+         (params `(("key" ,mw-dictionary-api-key)))
          (param-str (url-build-query-string params))
          (url (concat base-url
                       query
@@ -97,11 +97,11 @@
                       param-str)))
     (aio-await (aio-url-retrieve url))))
 
-(aio-defun mw-collegiate--get-json (query)
+(aio-defun mw-dictionary--get-json (query)
   "Return JSON for search QUERY."
   (let ((json-array-type 'list)
         (json-object-type 'alist)
-        (response (aio-await (mw-collegiate--get query))))
+        (response (aio-await (mw-dictionary--get query))))
     (with-current-buffer (cdr response)
       ;; (switch-to-buffer (current-buffer))
       (goto-char (point-min))
@@ -112,7 +112,7 @@
         (unless (or (string-empty-p json-str) (null json-str))
           (json-read-from-string json-str))))))
 
-(defun mw-collegiate--map-results (json)
+(defun mw-dictionary--map-results (json)
   "Return a results alist for each entry in JSON.
 Returns a list of alists."
   (mapcar (lambda (x)
@@ -125,14 +125,14 @@ Returns a list of alists."
                          (alist-get 'et x)))))
           json))
 
-(defun mw-collegiate--insert-defs (defs)
+(defun mw-dictionary--insert-defs (defs)
   "Format a string of definitions DEFS."
   (mapconcat
    (lambda (x)
      (concat "** " x "\n"))
    defs ""))
 
-(defun mw-collegiate--level1 (result)
+(defun mw-dictionary--level1 (result)
   "Return a level 1 string for RESULT."
   (concat "* " (alist-get :term result)
           " ~" (alist-get :pos result)
@@ -140,36 +140,36 @@ Returns a list of alists."
             (concat " [" date "]"))
           "~\n"))
 
-(defun mw-collegiate--etym (result)
+(defun mw-dictionary--etym (result)
   "Return an etymology string for RESULT."
   (when-let ((et (alist-get :etym result)))
     (concat "\n** etym:\n*** ~" et "~\n")))
 
-(defun mw-collegiate--insert-results (results)
+(defun mw-dictionary--insert-results (results)
   "Format a string of RESULTS."
   (mapconcat
    (lambda (x)
-     (let* ((level1 (mw-collegiate--level1 x))
-            (etym (mw-collegiate--etym x))
+     (let* ((level1 (mw-dictionary--level1 x))
+            (etym (mw-dictionary--etym x))
             (defs (alist-get :shortdefs x))
-            (level2 (mw-collegiate--insert-defs defs)))
+            (level2 (mw-dictionary--insert-defs defs)))
        (string-join (list level1 level2 etym) "")))
    results
    ""))
 
-(aio-defun mw-collegiate-dicionary-query (query)
+(aio-defun mw-dictionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
 QUERY is the term to search for."
   (interactive "sQuery: ")
-  (let* ((json (aio-await (mw-collegiate--get-json query)))
-         (results (mw-collegiate--map-results json)))
+  (let* ((json (aio-await (mw-dictionary--get-json query)))
+         (results (mw-dictionary--map-results json)))
     (with-current-buffer (get-buffer-create "*mw-dictionary*")
       (let ((inhibit-read-only t))
         (switch-to-buffer-other-window (current-buffer))
         (erase-buffer)
         (goto-char (point-min))
         (insert
-         (mw-collegiate--insert-results results))
+         (mw-dictionary--insert-results results))
         (org-mode)
         (mw-mode)
         (goto-char (point-min))))))
