@@ -119,7 +119,9 @@ Returns a list of alists."
                                    (alist-get 'meta x)))
               (:date . ,(alist-get 'date x))
               (:pos . ,(alist-get 'fl x))
-              (:defs . ,(alist-get 'shortdef x))))
+              (:shortdefs . ,(alist-get 'shortdef x))
+              (:etym . ,(cadar ; retuns only the first from "et"
+                         (alist-get 'et x)))))
           json))
 
 (defun mw-collegiate--insert-defs (defs)
@@ -129,18 +131,30 @@ Returns a list of alists."
      (concat "** " x "\n"))
    defs ""))
 
+(defun mw-collegiate--level1 (result)
+  "Return a level 1 string for RESULT."
+  (concat "* " (alist-get :term result)
+          " ~" (alist-get :pos result)
+          (when-let ((date (alist-get :date result)))
+            (concat " [" date "]"))
+          "~\n"))
+
+(defun mw-collegiate--etym (result)
+  "Return an etymology string for RESULT."
+  (when-let ((et (alist-get :etym result)))
+    (concat "\n** etym:\n*** ~" et "~\n")))
+
 (defun mw-collegiate--insert-results (results)
   "Format a string of RESULTS."
   (mapconcat
    (lambda (x)
-     (let* ((level1 (concat "* " (alist-get :term x)
-                            " ~" (alist-get :pos x)
-                            " [" (alist-get :date x)
-                            "]~\n"))
-            (defs (alist-get :defs x))
+     (let* ((level1 (mw-collegiate--level1 x))
+            (etym (mw-collegiate--etym x))
+            (defs (alist-get :shortdefs x))
             (level2 (mw-collegiate--insert-defs defs)))
-       (string-join (list level1 level2) "")))
-   results ""))
+       (string-join (list level1 level2 etym) "")))
+   results
+   ""))
 
 (defun mw-collegiate-dicionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
