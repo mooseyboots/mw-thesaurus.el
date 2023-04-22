@@ -160,19 +160,21 @@ Returns a list of alists."
 (aio-defun mw-dictionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
 QUERY is the term to search for."
-  (interactive "sQuery: ")
-  (let* ((json (aio-await (mw-dictionary--get-json query)))
-         (results (mw-dictionary--map-results json)))
-    (with-current-buffer (get-buffer-create "*mw-dictionary*")
-      (let ((inhibit-read-only t))
-        (switch-to-buffer-other-window (current-buffer))
-        (erase-buffer)
-        (goto-char (point-min))
-        (insert
-         (mw-dictionary--insert-results results))
-        (org-mode)
-        (mw-mode)
-        (goto-char (point-min))))))
+  (if (not mw-dictionary-api-key)
+      (message "You need to set `mw-dictionary-api-key' to use mw-dictionary.")
+    (interactive "sQuery: ")
+    (let* ((json (aio-await (mw-dictionary--get-json query)))
+           (results (mw-dictionary--map-results json)))
+      (with-current-buffer (get-buffer-create "*mw-dictionary*")
+        (let ((inhibit-read-only t))
+          (switch-to-buffer-other-window (current-buffer))
+          (erase-buffer)
+          (goto-char (point-min))
+          (insert
+           (mw-dictionary--insert-results results))
+          (org-mode)
+          (mw-mode)
+          (goto-char (point-min)))))))
 
 
 ;;; MW THESAURUS
