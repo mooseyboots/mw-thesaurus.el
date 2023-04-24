@@ -162,12 +162,13 @@ Returns a list of alists."
    results
    ""))
 
+;;;###autoload
 (aio-defun mw-dictionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
 QUERY is the term to search for."
+  (interactive "smw Dictionary: ")
   (if (not mw-dictionary-api-key)
       (message "You need to set `mw-dictionary-api-key' to use mw-dictionary.")
-    (interactive "sQuery: ")
     (let* ((json (aio-await (mw-dictionary--get-json query)))
            (results (mw-dictionary--map-results json)))
       (with-current-buffer (get-buffer-create "*mw-dictionary*")
@@ -300,7 +301,7 @@ If presented, the selected text will be used.
 Otherwise, user must provide additional information."
   (if (use-region-p)
       (buffer-substring-no-properties beginning end)
-    (read-string "Word to look up: ")))
+    (read-string "mw Thesaurus: ")))
 
 (defun mw-thesaurus-is-at-the-beginning-of-word (word-point)
   "Predicate to check whether `WORD-POINT' points to the beginning of the word."
