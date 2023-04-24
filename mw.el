@@ -179,17 +179,20 @@ QUERY is the term to search for."
     (let* ((json (aio-await (mw-dictionary--get-json query))))
       (if (stringp (car json))
           (mw-did-you-mean json)
-        (let ((results (mw-dictionary--map-results json)))
-          (with-current-buffer (get-buffer-create "*mw-dictionary*")
+        (let ((results (mw-dictionary--map-results json))
+              (buf "*mw-dictionary*"))
+          (with-current-buffer (get-buffer-create buf)
             (let ((inhibit-read-only t))
-              (switch-to-buffer-other-window (current-buffer))
               (erase-buffer)
               (goto-char (point-min))
               (insert
                (mw-dictionary--insert-results results))
               (org-mode)
               (mw-mode)
-              (goto-char (point-min)))))))))
+              (goto-char (point-min))))
+          (unless (equal (buffer-name (current-buffer)) buf)
+            (message "ran")
+            (switch-to-buffer-other-window buf)))))))
 
 
 ;;; MW THESAURUS
