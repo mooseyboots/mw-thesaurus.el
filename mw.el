@@ -162,6 +162,13 @@ Returns a list of alists."
    results
    ""))
 
+(defun mw-did-you-mean (terms)
+  "Read a choice from a list of similar TERMS and search for it."
+  (let ((choice
+         (completing-read "No results found. Search for similar term: "
+                          terms)))
+    (mw-dictionary-query choice)))
+
 ;;;###autoload
 (aio-defun mw-dictionary-query (query)
   "Query the merriam webster collegiate dictionary and return results.
@@ -169,18 +176,20 @@ QUERY is the term to search for."
   (interactive "smw Dictionary: ")
   (if (not mw-dictionary-api-key)
       (message "You need to set `mw-dictionary-api-key' to use mw-dictionary.")
-    (let* ((json (aio-await (mw-dictionary--get-json query)))
-           (results (mw-dictionary--map-results json)))
-      (with-current-buffer (get-buffer-create "*mw-dictionary*")
-        (let ((inhibit-read-only t))
-          (switch-to-buffer-other-window (current-buffer))
-          (erase-buffer)
-          (goto-char (point-min))
-          (insert
-           (mw-dictionary--insert-results results))
-          (org-mode)
-          (mw-mode)
-          (goto-char (point-min)))))))
+    (let* ((json (aio-await (mw-dictionary--get-json query))))
+      (if (stringp (car json))
+          (mw-did-you-mean json)
+        (let ((results (mw-dictionary--map-results json)))
+          (with-current-buffer (get-buffer-create "*mw-dictionary*")
+            (let ((inhibit-read-only t))
+              (switch-to-buffer-other-window (current-buffer))
+              (erase-buffer)
+              (goto-char (point-min))
+              (insert
+               (mw-dictionary--insert-results results))
+              (org-mode)
+              (mw-mode)
+              (goto-char (point-min)))))))))
 
 
 ;;; MW THESAURUS
