@@ -191,7 +191,6 @@ QUERY is the term to search for."
               (mw-mode)
               (goto-char (point-min))))
           (unless (equal (buffer-name (current-buffer)) buf)
-            (message "ran")
             (switch-to-buffer-other-window buf)))))))
 
 
