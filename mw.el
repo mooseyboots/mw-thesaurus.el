@@ -5,7 +5,7 @@
 ;; Created: Nov-2017
 ;; Keywords: wp, matching
 ;; License: GPL v3
-;; Package-Requires: ((emacs "26.1") (request "0.3.0") (dash "2.16.0") (aio "1.0"))
+;; Package-Requires: ((emacs "26.1") (request "0.3.0") (aio "1.0"))
 ;; Version: 1.0.1
 
 ;;; Commentary:
@@ -212,23 +212,23 @@ Retrieves content, resulting string is placed between '/' and
     (mapconcat
      (lambda (e)
        (if (member e its)
-           (concat "​/" (-> e last car string-trim) "/​")
+           (concat "​/" (thread-first e last car string-trim) "/​")
          (when (stringp e ) e)))
      prop "")))
 
 (defun mw-thesaurus--snd-subs (article)
   "Second level of ARTICLE."
-  (let* ((whole-sub (-> article
-                        (mw-thesaurus--get-xml-node '(vi)) car))
+  (let* ((whole-sub (thread-first article
+                                  (mw-thesaurus--get-xml-node '(vi)) car))
          (sub-str (mw-thesaurus--italicize whole-sub)))
     (concat "   - " sub-str)))
 
 (defun mw-thesaurus--other-tag (article tag-type)
   "Parse ARTICLE for different TAG-TYPE."
-  (let ((content (-> article
-                     (mw-thesaurus--get-xml-node `(,tag-type))
-                     car
-                     mw-thesaurus--italicize))
+  (let ((content (thread-first article
+                               (mw-thesaurus--get-xml-node `(,tag-type))
+                               car
+                               mw-thesaurus--italicize))
         (title (cond
                 ((eq tag-type 'syn) "Synonyms")
                 ((eq tag-type 'rel) "Related words")
@@ -253,9 +253,9 @@ Retrieves content, resulting string is placed between '/' and
   (let ((articles (mw-thesaurus--get-xml-node entry '(sens))))
     (mapconcat
      (lambda (article)
-       (let ((desc (-> (mw-thesaurus--get-xml-node article '(mc))
-                       car
-                       mw-thesaurus--italicize))
+       (let ((desc (thread-first (mw-thesaurus--get-xml-node article '(mc))
+                                 car
+                                 mw-thesaurus--italicize))
              (snd-subs (mw-thesaurus--snd-subs article))
              (third-lvl (mw-thesaurus--third-lvl article)))
          (string-join (list "** " desc "\n" snd-subs third-lvl) "")))
@@ -264,13 +264,13 @@ Retrieves content, resulting string is placed between '/' and
 
 (defun mw-thesaurus--get-title (entry)
   "Title for ENTRY."
-  (-> (mw-thesaurus--get-xml-node entry '(term hw))
-      car (seq-drop 2) car))
+  (thread-first (mw-thesaurus--get-xml-node entry '(term hw))
+                car (seq-drop 2) car))
 
 (defun mw-thesaurus--get-type (entry)
   "Type of the ENTRY is at <fl> tag."
-  (-> (mw-thesaurus--get-xml-node entry '(fl))
-      car (seq-drop 2) car))
+  (thread-first (mw-thesaurus--get-xml-node entry '(fl))
+                car (seq-drop 2) car))
 
 (defun mw-thesaurus--parse (xml-data)
   "Parse xml returned by Merriam-Webster dictionary API.
